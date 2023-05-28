@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
-import { StatusBar } from 'expo-status-bar'; 
+import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
 
 // formik
 import { Formik } from 'formik';
+import { ANDROID_CLIENT_ID, IOS_CLIENT_ID, EXPO_CLIENT_ID } from '@env';
 
 // icons
 import { Octicons, Ionicons, Fontisto } from '@expo/vector-icons';
@@ -30,7 +31,7 @@ import {
     TextLinkContent
 } from '../components/styles';
 
-import { View, ActivityIndicator } from 'react-native';
+import { View, ActivityIndicator, Text, Image, StyleSheet } from 'react-native';
 
 // colors
 const { brand, primary, darkLight } = Colors;
@@ -40,8 +41,48 @@ import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper';
 
 // api client axios
 import axios from 'axios';
+import * as Google from 'expo-auth-session/providers/google';
+import * as WebBrowser from 'expo-web-browser';
+
+WebBrowser.maybeCompleteAuthSession();
 
 const Login = ({ navigation }) => {
+    const [accessToken, setAccessToken] = useState(null);
+    const [userData, setUserData] = useState(null);
+
+    const [request, response, promptAsync] = Google.useAuthRequest({
+        androidClientId: ANDROID_CLIENT_ID,
+        iosClientId: IOS_CLIENT_ID,
+        expoClientId: EXPO_CLIENT_ID,
+    });
+
+    useEffect(() => {
+        console.log('response', response);
+        if (response?.type === 'success') {
+            setAccessToken(response?.authentication?.accessToken);
+            console.log('authentication', response?.authentication);
+        }
+    }, [response]);
+    const getUserInfo = async () => {
+        let res = await fetch('https://www.googleapis.com/userinfo/v2/me', {
+            headers: { Authorization: `Bearer ${accessToken}` },
+        });
+
+        res.json().then((data) => {
+            console.log('data', data);
+            setUserData(data);
+        });
+    };
+
+    useEffect(() => {
+        if (userData !== null) {
+            handleMessage('Logged in successfully. Redirecting to home page...', 'SUCCESS');
+            setTimeout(() => navigation.navigate('Welcome', { ...userData }));
+        } else {
+            handleMessage('An error occurred. Check your network and try again.');
+        }
+    }, [userData]);
+
     const [hidePassword, setHidePassword] = useState(true);
     const [message, setMessage] = useState();
     const [messageType, setMessageType] = useState();
@@ -81,7 +122,7 @@ const Login = ({ navigation }) => {
         <StyledContainer>
             <StatusBar style="dark" />
             <InnerContainer>
-                <PageLogo resizeMode="cover" source={require('../assets/3162367.jpg')} />
+                <PageLogo resizeMode="cover" source={require('../assets/callowayprintslogo.jpg')} />
                 <PageTitle>Scavenger Hunt</PageTitle>
                 <SubTitle>Account Login</SubTitle>
 
@@ -136,9 +177,11 @@ const Login = ({ navigation }) => {
                                 </StyledButton>
                             )}
                             <Line />
-                            <StyledButton onPress={handleSubmit} google={true}>
+                            <StyledButton disabled={!request} onPress={() => 
+                                accessToken ? getUserInfo() : promptAsync({ showInRevents: true, useProxy: true})
+                                } google={true}>
                                 <Fontisto name="google" color={primary} size={25} />
-                                <ButtonText google={true}>Sign in with Google</ButtonText>
+                                <ButtonText google={true}>{accessToken ? 'Get User Data':'Sign in with Google'}</ButtonText>
                             </StyledButton>
                             <ExtraView>
                                 <ExtraText>Don't have an account already? </ExtraText>
@@ -171,5 +214,13 @@ const MyTextInput = ({ label, icon, isPassword, hidePassword, setHidePassword, .
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    image: {
+        flex: 1,
+        justifyContent: 'center',
+        resizeMode: 'cover'
+    }
+});
 
 export default Login;

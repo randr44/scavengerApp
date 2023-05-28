@@ -15,6 +15,9 @@ const { brand, darkLight, primary } = Colors;
 //date picker
 import DateTimePicker from '@react-native-community/datetimepicker';
 
+// api client
+import axios from 'axios';
+
 // keyboard avoiding view
 import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper';
 
@@ -93,13 +96,14 @@ const Signup = ({navigation}) => {
                         />
                     )}
                     <Formik
-                        initialValues={{ name: '', email: '', dateOfBirth: '',  password: '', confirmPassword: ''  }}
+                        initialValues={{ name: '', email: '', dateOfBirth: '',  password: '', confirmedPassword: ''  }}
                         onSubmit={(values, {setSubmitting}) => {
-                            if (values.email == '' || values.password == '' || values.name == '' || values.dateOfBirth == '' || values.confirmPassword == '') {
+                            values = {...values, dateOfBirth: dob}
+                            if (values.email == '' || values.password == '' || values.name == '' || values.dateOfBirth == '' || values.confirmedPassword == '') {
                                 handleMessage('Please fill all the fields');
                                 setSubmitting(false);
                                 console.log(values);
-                            } else if (values.password !== values.confirmPassword) {
+                            } else if (values.password !== values.confirmedPassword) {
                                 handleMessage('Passwords do not match');
                                 setSubmitting(false);
                             } else {
@@ -157,9 +161,9 @@ const Signup = ({navigation}) => {
                                 icon="lock"
                                 placeholder="* * * * * * * *"
                                 placeholderTextColor={darkLight}
-                                onChangeText={handleChange('confirmPassword')}
-                                onBlur={handleBlur('confirmPassword')}
-                                value={values.confirmPassword}
+                                onChangeText={handleChange('confirmedPassword')}
+                                onBlur={handleBlur('confirmedPassword')}
+                                value={values.confirmedPassword}
                                 secureTextEntry={hidePassword}
                                 isPassword={true}
                                 hidePassword={hidePassword}

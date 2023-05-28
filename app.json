@@ -1,7 +1,8 @@
 {
   "expo": {
+    "scheme": "com.auth.scavengerapp",
     "name": "scavengerApp",
-    "slug": "scavengerApp",
+    "slug": "scavenger-app",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -14,10 +15,15 @@
     "assetBundlePatterns": [
       "**/*"
     ],
+    "updates": {
+      "fallbackToCacheTimeout": 0
+    },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.auth.scavengerapp"
     },
     "android": {
+      "package": "com.auth.scavengerapp",
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
@@ -25,6 +31,11 @@
     },
     "web": {
       "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "9f38035c-e9ec-462e-a482-1503ac344892"
+      }
     }
   }
 }

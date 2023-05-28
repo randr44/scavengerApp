@@ -7,18 +7,20 @@ const Welcome = ({navigation, route}) => {
     console.log('navigation', navigation);
     console.log('route.params', route.params);
     console.log('route', route)
-    const {name, email} = route.params;
+    const {name, email, picture} = route.params;
+
+    const AvatarImg = picture ? {uri: picture} : require('../assets/3162367.jpg');
     return (
         <>
             <StatusBar style="light" />
             <InnerContainer>
                 <WelcomeImage resizeMode="cover" source={require('../assets/finger-2081169.jpg')} />
                 <WelcomeContainer>
-                    <PageTitle welcome={true}>Welcome! Buddy</PageTitle>
+                    <PageTitle welcome={true}>Welcome!</PageTitle>
                     <SubTitle welcome={true}>{name || 'Friend'}</SubTitle>
                     <SubTitle welcome={true}>{email || 'friend@gmail.com'}</SubTitle>
                     <StyledFormArea>
-                        <Avatar resizeMode="cover" source={require('../assets/3162367.jpg')} />
+                        <Avatar resizeMode="cover" source={AvatarImg} />
                             <Line />
                             <StyledButton onPress={() => {navigation.navigate('Login')}}>
                             <ButtonText>Logout</ButtonText>
