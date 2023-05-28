@@ -33,7 +33,7 @@ import {
 
 import { View, ActivityIndicator, Text, Image, StyleSheet } from 'react-native';
 
-// colors
+// colors-o
 const { brand, primary, darkLight } = Colors;
 
 // keyboard avoiding view
