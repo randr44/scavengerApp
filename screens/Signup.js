@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
 
 import { Formik } from 'formik';
@@ -21,6 +21,10 @@ import axios from 'axios';
 // keyboard avoiding view
 import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper';
 
+//credentials context
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CredentialsContext } from './../components/CredentialsContext';
+
 const Signup = ({navigation}) => {
     const [hidePassword, setHidePassword] = useState(true);
     const [show, setShow] = useState(false);
@@ -31,6 +35,10 @@ const Signup = ({navigation}) => {
 
     // actual date of birth value to be sent
     const [dob, setDob] = useState();
+
+    
+    // context
+    const { storedCredentials, setStoredCredentials } = useContext(CredentialsContext);
 
     const onChange = (event, selectedDate) => {
         console.log('event', event);
@@ -58,10 +66,8 @@ const Signup = ({navigation}) => {
             const status = response.status ;
             if (response.status !== 200) {
                 handleMessage(message, status);
-                console.log('message', message);
-                console.log('status', status);
             } else {
-                navigation.navigate('Welcome', { ...data });
+                persistLogin({...data}, message, status);
             }
             setSubmitting(false);
         })
@@ -76,6 +82,20 @@ const Signup = ({navigation}) => {
         setMessage(message);
         setMessageType(type);
     };
+
+    const persistLogin = (credentials, message, status) => {
+        AsyncStorage.setItem('scavenger_hunt_token', JSON.stringify(credentials))
+        .then(() => {
+            handleMessage(message, status);
+            setStoredCredentials(credentials);
+            navigation.navigate('Welcome', { ...credentials });
+        })
+        .catch((error) => {
+            console.log('error', error.JSON());
+            handleMessage('Persisting login failed.');
+        });
+    };
+
 
     return (
         <>

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { StatusBar } from 'expo-status-bar';
 
 // formik
@@ -44,6 +44,8 @@ import axios from 'axios';
 import * as Google from 'expo-auth-session/providers/google';
 import * as WebBrowser from 'expo-web-browser';
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { CredentialsContext } from './../components/CredentialsContext';
 WebBrowser.maybeCompleteAuthSession();
 
 const Login = ({ navigation }) => {
@@ -56,13 +58,9 @@ const Login = ({ navigation }) => {
         expoClientId: EXPO_CLIENT_ID,
     });
 
-    useEffect(() => {
-        console.log('response', response);
-        if (response?.type === 'success') {
-            setAccessToken(response?.authentication?.accessToken);
-            console.log('authentication', response?.authentication);
-        }
-    }, [response]);
+    // context
+    const { storedCredentials, setStoredCredentials } = useContext(CredentialsContext);
+
     const getUserInfo = async () => {
         let res = await fetch('https://www.googleapis.com/userinfo/v2/me', {
             headers: { Authorization: `Bearer ${accessToken}` },
@@ -73,42 +71,58 @@ const Login = ({ navigation }) => {
             setUserData(data);
         });
     };
+    const persistLogin = (credentials, message, status) => {
+        console.log('credentials', credentials)
+        AsyncStorage.setItem('scavenger_hunt_token', JSON.stringify(credentials))
+        .then(() => {
+            handleMessage(message, status);
+            console.log('credentials', credentials);
+            setStoredCredentials(credentials);
+            navigation.navigate('Welcome', { ...credentials });
+        })
+        .catch((error) => {
+            console.log('error', error);
+            handleMessage('Persisting login failed.');
+        }); 
+    };
+
+    useEffect(() => {
+        if (response?.type === 'success') {
+            setAccessToken(response?.authentication?.accessToken);
+        }
+    }, [response]);
 
     useEffect(() => {
         if (userData !== null) {
-            handleMessage('Logged in successfully. Redirecting to home page...', 'SUCCESS');
-            setTimeout(() => navigation.navigate('Welcome', { ...userData }));
-        } else {
-            handleMessage('An error occurred. Check your network and try again.');
-        }
+            handleMessage('Google signin successful', 'SUCCESS');
+            persistLogin({...userData}, message, 'SUCCESS');
+        } 
     }, [userData]);
 
     const [hidePassword, setHidePassword] = useState(true);
     const [message, setMessage] = useState();
     const [messageType, setMessageType] = useState();
 
-    const handleLogin = (credentials, setSubmitting) => {
+    const handleLogin = async(credentials, setSubmitting) => {
         handleMessage(null);
         const url = 'https://scavhunt.cyclic.app/api/v1/user'; // change to your url https://scavhunt.cyclic.app/api/v1/
         axios
         .post(url, credentials)
         .then((response) => {
-            const data = response.data;
-            const message = response.message ? response.message: response.statusText;
-            const status = response.status ;
-            if (response.status !== 200) {
+            const result = response.data;
+            console.log('resultDATA', result)
+            console.log('result', response)
+            const {message, status, data} = response;
+            if (status !== 200) {
                 handleMessage(message, status);
-                console.log('message', message);
-                console.log('status', status);
             } else {
-                navigation.navigate('Welcome', { ...data });
+                persistLogin({...data}, message, status);
             }
             setSubmitting(false);
         })
         .catch((error) => {
-            console.log('error', error.JSON());
             setSubmitting(false);
-            handleMessage('An error occurred. Check your network and try again.');
+            handleMessage('An error occurred in the login process.', 'FAILED');
         });
     };
 
@@ -178,7 +192,8 @@ const Login = ({ navigation }) => {
                             )}
                             <Line />
                             <StyledButton disabled={!request} onPress={() => 
-                                accessToken ? getUserInfo() : promptAsync({ showInRevents: true, useProxy: true})
+                                accessToken ? getUserInfo() : 
+                                promptAsync({ showInRevents: true})
                                 } google={true}>
                                 <Fontisto name="google" color={primary} size={25} />
                                 <ButtonText google={true}>{accessToken ? 'Get User Data':'Sign in with Google'}</ButtonText>
