@@ -8,7 +8,6 @@ import { ANDROID_CLIENT_ID, IOS_CLIENT_ID, EXPO_CLIENT_ID } from '@env';
 // icons
 import { Octicons, Ionicons, Fontisto } from '@expo/vector-icons';
 
-// style
 import { 
     StyledContainer,
     InnerContainer,
@@ -18,7 +17,6 @@ import {
     StyledFormArea,
     LeftIcon,
     StyledInputLabel,
-    StyledTextInput,
     RightIcon,
     Colors,
     MsgBox,
@@ -26,18 +24,19 @@ import {
     ButtonText,
     Line,
     ExtraText,
+    StyledTextInput,
     ExtraView,
     TextLink,
     TextLinkContent
 } from '../components/styles';
 
+// api route
+import { baseAPIUrl } from '../components/shared';
+
 import { View, ActivityIndicator, Text, Image, StyleSheet } from 'react-native';
 
 // colors-o
 const { brand, primary, darkLight } = Colors;
-
-// keyboard avoiding view
-import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper';
 
 // api client axios
 import axios from 'axios';
@@ -105,9 +104,11 @@ const Login = ({ navigation }) => {
 
     const handleLogin = async(credentials, setSubmitting) => {
         handleMessage(null);
-        const url = 'https://scavhunt.cyclic.app/api/v1/user'; // change to your url https://scavhunt.cyclic.app/api/v1/
+        const url = `${baseAPIUrl}/user`; // change to your url https://scavhunt.cyclic.app/api/v1/
         axios
-        .post(url, credentials)
+        .post(url, credentials, {
+            validateStatus: () => true,
+        })
         .then((response) => {
             const result = response.data;
             console.log('resultDATA', result)
@@ -132,84 +133,83 @@ const Login = ({ navigation }) => {
     };
 
     return (
-        <KeyboardAvoidingWrapper>
+    
         <StyledContainer>
-            <StatusBar style="dark" />
-            <InnerContainer>
-                <PageLogo resizeMode="cover" source={require('../assets/callowayprintslogo.jpg')} />
-                <PageTitle>Scavenger Hunt</PageTitle>
-                <SubTitle>Account Login</SubTitle>
+             <StatusBar style="dark" />
+             <InnerContainer>
+                 <PageLogo resizeMode="cover" source={require('../assets/callowayprintslogo.jpg')} />
+                 <PageTitle>Scavenger Hunt</PageTitle>
+                 <SubTitle>Account Login</SubTitle>
 
-                <Formik
-                    initialValues={{ email: '', password: '' }}
-                    onSubmit={(values, { setSubmitting}) => {
-                        if (values.email == '' || values.password == '') {
-                            handleMessage('Please fill in all fields.');
-                            setSubmitting(false);
-                        } else {
-                            handleLogin(values, setSubmitting);
-                        }
-                    }}
-                >
-                    {({ handleChange, handleBlur, handleSubmit, values, isSubmitting }) => (
-                        <StyledFormArea>
-                            <MyTextInput
-                                label="Email Address"
-                                icon="mail"
-                                placeholder="email@abc.com"
-                                placeholderTextColor={darkLight}
-                                onChangeText={handleChange('email')}
-                                onBlur={handleBlur('email')}
-                                value={values.email}
-                                keyboardType="email-address"
-                            />
+                 <Formik
+                     initialValues={{ email: '', password: '' }}
+                     onSubmit={(values, { setSubmitting}) => {
+                         if (values.email == '' || values.password == '') {
+                             handleMessage('Please fill in all fields.');
+                             setSubmitting(false);
+                         } else {
+                             handleLogin(values, setSubmitting);
+                         }
+                     }}
+                 >
+                     {({ handleChange, handleBlur, handleSubmit, values, isSubmitting }) => (
+                         <StyledFormArea>
+                             <MyTextInput
+                                 label="Email Address"
+                                 icon="mail"
+                                 placeholder="email@abc.com"
+                                 placeholderTextColor={darkLight}
+                                 onChangeText={handleChange('email')}
+                                 onBlur={handleBlur('email')}
+                                 value={values.email}
+                                 keyboardType="email-address"
+                             />
 
-                            <MyTextInput
-                                label="Password"
-                                icon="lock"
-                                placeholder="* * * * * * * *"
-                                placeholderTextColor={darkLight}
-                                onChangeText={handleChange('password')}
-                                onBlur={handleBlur('password')}
-                                value={values.password}
-                                secureTextEntry={hidePassword}
-                                isPassword={true}
-                                hidePassword={hidePassword}
-                                setHidePassword={setHidePassword}
-                            />
-                            <MsgBox type={messageType}>{message}</MsgBox>
+                             <MyTextInput
+                                 label="Password"
+                                 icon="lock"
+                                 placeholder="* * * * * * * *"
+                                 placeholderTextColor={darkLight}
+                                 onChangeText={handleChange('password')}
+                                 onBlur={handleBlur('password')}
+                                 value={values.password}
+                                 secureTextEntry={hidePassword}
+                                 isPassword={true}
+                                 hidePassword={hidePassword}
+                                 setHidePassword={setHidePassword}
+                             />
+                             <MsgBox type={messageType}>{message}</MsgBox>
                            
-                           {!isSubmitting && (
-                                <StyledButton onPress={handleSubmit}>
-                                    <ButtonText>Login</ButtonText>
-                                </StyledButton>
-                            )}
+                            {!isSubmitting && (
+                                 <StyledButton onPress={handleSubmit}>
+                                     <ButtonText>Login</ButtonText>
+                                 </StyledButton>
+                             )}
 
-                            {isSubmitting && (
-                                <StyledButton disabled={true}>
-                                    <ActivityIndicator size="large" color={primary} />
-                                </StyledButton>
-                            )}
-                            <Line />
-                            <StyledButton disabled={!request} onPress={() => 
-                                accessToken ? getUserInfo() : 
-                                promptAsync({ showInRevents: true})
-                                } google={true}>
-                                <Fontisto name="google" color={primary} size={25} />
-                                <ButtonText google={true}>{accessToken ? 'Get User Data':'Sign in with Google'}</ButtonText>
-                            </StyledButton>
-                            <ExtraView>
-                                <ExtraText>Don't have an account already? </ExtraText>
-                                <TextLink onPress={() =>  navigation.navigate("Signup")}>
-                                    <TextLinkContent>Signup</TextLinkContent>
-                                </TextLink>
-                            </ExtraView>
-                        </StyledFormArea>
-                    )}
-                </Formik>
-            </InnerContainer>
-        </StyledContainer>
-        </KeyboardAvoidingWrapper>
+                             {isSubmitting && (
+                                 <StyledButton disabled={true}>
+                                     <ActivityIndicator size="large" color={primary} />
+                                 </StyledButton>
+                             )}
+                             <Line />
+                             <StyledButton disabled={!request} onPress={() => 
+                                 accessToken ? getUserInfo() : 
+                                 promptAsync({ showInRevents: true})
+                                 } google={true}>
+                                 <Fontisto name="google" color={primary} size={25} />
+                                 <ButtonText google={true}>{accessToken ? 'Get User Data':'Sign in with Google'}</ButtonText>
+                             </StyledButton>
+                             <ExtraView>
+                                 <ExtraText>Don't have an account already? </ExtraText>
+                                 <TextLink onPress={() =>  navigation.navigate("Signup")}>
+                                     <TextLinkContent>Signup</TextLinkContent>
+                                 </TextLink>
+                             </ExtraView>
+                         </StyledFormArea>
+                     )}
+                 </Formik>
+             </InnerContainer>
+         </StyledContainer> 
     );
 }
 
@@ -230,12 +230,5 @@ const MyTextInput = ({ label, icon, isPassword, hidePassword, setHidePassword, .
     );
 }
 
-const styles = StyleSheet.create({
-    image: {
-        flex: 1,
-        justifyContent: 'center',
-        resizeMode: 'cover'
-    }
-});
 
 export default Login;
