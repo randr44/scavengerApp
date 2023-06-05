@@ -1,3 +1,4 @@
+// import Verification from './../screens/LinkVerification';
 import React from 'react';
 
 import { Colors } from './../components/styles';
@@ -11,6 +12,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import Login from './../screens/Login';
 import Signup from './../screens/Signup';
 import Welcome from './../screens/Welcome';
+import OtpVerification from './../screens/OtpVerification';
 import { CredentialsContext } from './../components/CredentialsContext';
 
 const Stack = createStackNavigator();
@@ -31,15 +33,17 @@ const RootStack = () => {
                             paddingLeft: 20
                          }
                      }}
-                     initialRouteName='Login'
+                     initialRouteName='Login' //Login temp change to verification
                  >
                     { storedCredentials ? ( 
                         <Stack.Screen options={{ headerTintColor: primary }}
                             name="Welcome" component={Welcome} />
                         ) : (
-                        <>
+                        <>  
                             <Stack.Screen name="Login" component={Login} />
                             <Stack.Screen name="Signup" component={Signup} />
+                            <Stack.Screen name="Verification" component={OtpVerification} />
+                            {/* <Stack.Screen name="OtpVerification" component={OtpVerification} /> */}
                         </>
                         )
                     } 

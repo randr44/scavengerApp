@@ -11,6 +11,7 @@ import { View, TouchableOpacity, ActivityIndicator } from 'react-native'
 
 // colors
 const { brand, darkLight, primary } = Colors;
+import { baseAPIUrl } from '../components/shared';
 
 //date picker
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -19,7 +20,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import axios from 'axios';
 
 // keyboard avoiding view
-import KeyboardAvoidingWrapper from './../components/KeyboardAvoidingWrapper';
+import KeyboardAvoidingWrapper from '../components/Containers/KeyboardAvoidingWrapper';
 
 //credentials context
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -55,19 +56,23 @@ const Signup = ({navigation}) => {
     };
 
     // form handling
-    const handleSignup = (credentials, setSubmitting) => {
+    const handleSignup = async (credentials, setSubmitting) => {
         handleMessage(null);
-        const url = 'https://scavhunt.cyclic.app/api/v1/user/signup'; // change to your url https://scavhunt.cyclic.app/api/v1/
+        const url = `${baseAPIUrl}/user/signup`;
         axios
-        .post(url, credentials)
+        .post(url, credentials, {
+            validateStatus: () => true,
+        })
         .then((response) => {
-            const data = response.data;
-            const message = response.message ? response.message: response.statusText;
-            const status = response.status ;
+            const result = response.data;
             if (response.status !== 200) {
-                handleMessage(message, status);
+                handleMessage(result, 'FAILED!');
             } else {
-                persistLogin({...data}, message, status);
+                // move to account verification screen
+                temporaryUserPersist({ email, fullName, dateOfBirth, password, confirmedPassword} = credentials);
+                setStoredCredentials(credentials);
+                navigation.navigate('Verification', { ...result });
+                // persistLogin({...data}, message, status);
             }
             setSubmitting(false);
         })
@@ -78,23 +83,31 @@ const Signup = ({navigation}) => {
         });
     };
 
+    const temporaryUserPersist = async (credentials) => {
+        try {
+            await AsyncStorage.setItem('tempUser', JSON.stringify(credentials))
+        } catch (error) {
+            handleMessage('Error with initial data handling.');
+        }
+    };
+
     const handleMessage = (message, type = 'FAILED') => {
         setMessage(message);
         setMessageType(type);
     };
 
-    const persistLogin = (credentials, message, status) => {
-        AsyncStorage.setItem('scavenger_hunt_token', JSON.stringify(credentials))
-        .then(() => {
-            handleMessage(message, status);
-            setStoredCredentials(credentials);
-            navigation.navigate('Welcome', { ...credentials });
-        })
-        .catch((error) => {
-            console.log('error', error.JSON());
-            handleMessage('Persisting login failed.');
-        });
-    };
+    // const persistLogin = (credentials, message, status) => {
+    //     AsyncStorage.setItem('scavenger_hunt_token', JSON.stringify(credentials))
+    //     .then(() => {
+    //         handleMessage(message, status);
+    //         setStoredCredentials(credentials);
+    //         navigation.navigate('Welcome', { ...credentials });
+    //     })
+    //     .catch((error) => {
+    //         console.log('error', error.JSON());
+    //         handleMessage('Persisting login failed.');
+    //     });
+    // };
 
 
     return (
